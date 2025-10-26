@@ -11,6 +11,7 @@ import '../../midibs/data/midib_api.dart';
 import '../../../app/widgets/error_view.dart';
 import '../../../app/widgets/app_drawer.dart';
 import 'member_basic_info_entry_page.dart';
+import 'member_address_info_entry_page.dart';
 
 class MemberDataEntryPage extends StatefulWidget {
   const MemberDataEntryPage({super.key});
@@ -213,7 +214,7 @@ class _MemberDataEntryPageState extends State<MemberDataEntryPage> {
                       ),
                     ),
                   )
-                else if (_selectedMidibId != null)
+                else if (!_isLoadingMembers && _selectedMidibId != null && _members.isEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 16),
                     child: Text('በዚህ ምድብ ውስጥ አባል የለም።'),
@@ -223,18 +224,14 @@ class _MemberDataEntryPageState extends State<MemberDataEntryPage> {
 
                 // 🧱 QUICK CARDS (after member selection)
                 if (_selectedMemberId != null) ...[
-                  _quickCard(
-                    context,
-                    'መሠረታዊ መረጃ',
-                    Icons.info_outline,
-                    '/member_basic_info_entry/${_selectedMemberId!}',
-                  ),
+                  _quickCard(context, 'መሠረታዊ መረጃ', Icons.info_outline,
+					  '/member_basic_info_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'አድራሻ', Icons.home_outlined,
-                      '/data_entry/address/${_selectedMemberId!}'),
+                      '/member_address_info_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'ሥራ/ትምህርት', Icons.work_outline,
-                      '/data_entry/education/${_selectedMemberId!}'),
+                      '/member_education_and_job_info_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'ቤተሰብ', Icons.family_restroom,
-                      '/data_entry/family/${_selectedMemberId!}'),
+                      '/member_family_info_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'ፎቶ', Icons.photo_camera_outlined,
                       '/data_entry/photo/${_selectedMemberId!}'),
                   _quickCard(context, 'አገልግሎት', Icons.church_outlined,

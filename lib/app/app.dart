@@ -12,6 +12,9 @@ import '../features/members/presentation/member_detail_page.dart';
 import '../features/members/presentation/member_new_page.dart';
 import '../features/members/presentation/member_full_detail_page.dart';
 import '../features/members/data_entry/member_basic_info_entry_page.dart';
+import '../features/members/data_entry/member_address_info_entry_page.dart';
+import '../features/members/data_entry/member_family_info_entry_page.dart';
+import '../features/members/data_entry/member_education_and_job_info_entry_page.dart';
 import '../features/members/data_entry/member_data_entry_page.dart';
 import '../features/reports/presentation/report_by_midib_page.dart';
 import '../features/charts/presentation/charts_page.dart';
@@ -129,6 +132,21 @@ class GejaApp extends StatelessWidget {
 		  path: '/member_basic_info_entry/:id',
 		  builder: (context, state) =>
 			  MemberBasicInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+		),
+		GoRoute(
+		  path: '/member_address_info_entry/:id',
+		  builder: (context, state) =>
+			  MemberAddressInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+		),
+		GoRoute(
+		  path: '/member_family_info_entry/:id',
+		  builder: (context, state) =>
+			  MemberFamilyInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+		),
+		GoRoute(
+		  path: '/member_education_and_job_info_entry/:id',
+		  builder: (context, state) =>
+			  MemberEducationAndJobInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
 		),
 		GoRoute(
 		  path: '/reports/by-midib',

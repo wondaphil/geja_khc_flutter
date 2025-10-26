@@ -30,21 +30,31 @@ class ApiPaths {
 	// AddressInfo
 	static const String getAddressInfo = '${_baseUrl}GetAddressInfo';
 	static const String getAddressInfoByMember = '${_baseUrl}GetAddressInfoByMember';
+	static const String setAddressInfo = '${_baseUrl}SetAddressInfo';
 	static const String getSubcity = '${_baseUrl}GetSubcity';	
+	static const String getSubcityList = '${_baseUrl}GetSubcityList';	
 	static const String getHouseOwnership = '${_baseUrl}GetHouseOwnershipType';
+	static const String getHouseOwnershipList = '${_baseUrl}GetHouseOwnershipTypeList';
 	
 	// EducationAndJobInfo
 	static const String getEducationAndJobInfo = '${_baseUrl}GetEducationAndJobInfo';
 	static const String getEducationAndJobInfoByMember = '${_baseUrl}GetEducationAndJobInfoByMember';
+	static const String setEducationAndJobInfo = '${_baseUrl}setEducationAndJobInfo';
 	static const String getEducationLevel = '${_baseUrl}GetEducationLevel';
+	static const String getEducationLevelList = '${_baseUrl}GetEducationLevelList';
 	static const String getFieldOfStudy = '${_baseUrl}GetFieldOfStudy';
+	static const String getFieldOfStudyList = '${_baseUrl}GetFieldOfStudyList';
 	static const String getJob = '${_baseUrl}GetJob';
+	static const String getJobList = '${_baseUrl}GetJobList';
 	static const String getJobType = '${_baseUrl}GetJobType';
+	static const String getJobTypeList = '${_baseUrl}GetJobTypeList';
 	
 	// FamilyInfo
 	static const String getFamilyInfo = '${_baseUrl}GetFamilyInfo';
 	static const String getFamilyInfoByMember = '${_baseUrl}GetFamilyInfoByMember';
+	static const String setFamilyInfo = '${_baseUrl}SetFamilyInfo';
 	static const String getMaritalStatus = '${_baseUrl}GetMaritalStatus';
+	static const String getMaritalStatusList = '${_baseUrl}GetMaritalStatusList';
 	
 	// MemberPhoto
 	static const String getMemberPhoto = '${_baseUrl}GetMemberPhoto';

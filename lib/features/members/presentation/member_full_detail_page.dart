@@ -322,7 +322,7 @@ class _AddressInfoTabState extends State<_AddressInfoTab>
       options: Options(validateStatus: (s) => true),
     );
 
-    print('GetAddressInfoByMember → ${res.statusCode} ${res.data}');
+    print('GetAddressInfo → ${res.statusCode} ${res.data}');
     if (res.statusCode != 200 || res.data == null) {
       throw Exception('Failed to load AddressInfo');
     }
