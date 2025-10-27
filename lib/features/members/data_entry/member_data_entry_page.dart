@@ -10,8 +10,6 @@ import '../../members/data/members_api.dart';
 import '../../midibs/data/midib_api.dart';
 import '../../../app/widgets/error_view.dart';
 import '../../../app/widgets/app_drawer.dart';
-import 'member_basic_info_entry_page.dart';
-import 'member_address_info_entry_page.dart';
 
 class MemberDataEntryPage extends StatefulWidget {
   const MemberDataEntryPage({super.key});
@@ -233,7 +231,7 @@ class _MemberDataEntryPageState extends State<MemberDataEntryPage> {
                   _quickCard(context, 'ቤተሰብ', Icons.family_restroom,
                       '/member_family_info_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'ፎቶ', Icons.photo_camera_outlined,
-                      '/data_entry/photo/${_selectedMemberId!}'),
+                      '/member_photo_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'አገልግሎት', Icons.church_outlined,
                       '/data_entry/ministry/${_selectedMemberId!}'),
                 ],

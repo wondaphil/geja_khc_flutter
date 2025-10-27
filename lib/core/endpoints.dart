@@ -59,6 +59,7 @@ class ApiPaths {
 	// MemberPhoto
 	static const String getMemberPhoto = '${_baseUrl}GetMemberPhoto';
 	static const String getMemberPhotoByMember = '${_baseUrl}GetMemberPhotoByMember';
+	static const String setMemberPhoto = '${_baseUrl}SetMemberPhoto';
 	
 	// MemberMinistries
 	static const String getMemberMinistry = '${_baseUrl}GetMemberMinistry';
