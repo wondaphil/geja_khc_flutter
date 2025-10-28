@@ -233,7 +233,7 @@ class _MemberDataEntryPageState extends State<MemberDataEntryPage> {
                   _quickCard(context, 'ፎቶ', Icons.photo_camera_outlined,
                       '/member_photo_entry/${_selectedMemberId!}'),
                   _quickCard(context, 'አገልግሎት', Icons.church_outlined,
-                      '/data_entry/ministry/${_selectedMemberId!}'),
+                      '/member_ministry_info_entry/${_selectedMemberId!}'),
                 ],
               ],
             ),

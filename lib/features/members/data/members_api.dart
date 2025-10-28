@@ -120,19 +120,23 @@ class MembersApi {
 
   /// Suggest next member code for a given midib from existing members.
   Future<String> nextMemberCodeForMidib(Midib midib) async {
-    final list = await listMembersByMidib(midib);
-    final prefix = (midib.midibCode ?? '').trim();
-    // Extract trailing number from MemberCode, e.g., "02-0017" -> 17
-    final nums = list
-        .map((m) => int.tryParse(
-              (m.memberCode ?? '')
-                  .replaceAll(RegExp(r'^\D+'), '')
-                  .replaceAll(RegExp(r'\D'), ''),
-            ) ?? 0)
-        .toList();
-    final maxNum = (nums.isEmpty ? 0 : nums.reduce((a, b) => a > b ? a : b));
-    final next = maxNum + 1;
-    final padded = next.toString().padLeft(4, '0');
-    return prefix.isEmpty ? padded : '$prefix-$padded';
-  }
+	  final list = await listMembersByMidib(midib);
+	  final prefix = (midib.midibCode ?? '').trim();
+
+	  // Find the highest trailing number (after the last '-')
+	  final nums = list.map((m) {
+		final code = (m.memberCode ?? '').trim();
+		// Extract digits after the last dash, or the whole number if no dash
+		final parts = code.split('-');
+		final lastPart = parts.isNotEmpty ? parts.last : code;
+		return int.tryParse(lastPart.replaceAll(RegExp(r'\D'), '')) ?? 0;
+	  }).toList();
+
+	  final maxNum = (nums.isEmpty ? 0 : nums.reduce((a, b) => a > b ? a : b));
+	  final next = maxNum + 1;
+	  final padded = next.toString().padLeft(3, '0'); // keep 3 digits like 001, 002...
+
+	  // 🧠 Only add prefix if not already part of the code
+	  return prefix.isEmpty ? padded : '$prefix-$padded';
+	}
 }

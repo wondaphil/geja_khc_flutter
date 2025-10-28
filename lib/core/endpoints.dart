@@ -64,8 +64,12 @@ class ApiPaths {
 	// MemberMinistries
 	static const String getMemberMinistry = '${_baseUrl}GetMemberMinistry';
 	static const String getMemberMinistriesByMember = '${_baseUrl}GetMemberMinistriesByMember';
+	static const String setMemberMinistry = '${_baseUrl}SetMemberMinistry';
+	static const String deleteMemberMinistry = '${_baseUrl}DeleteMemberMinistry';
 	static const String getMinistryType = '${_baseUrl}GetMinistryType';
+	static const String getMinistryTypeList = '${_baseUrl}GetMinistryTypeList';
 	static const String getMinistry = '${_baseUrl}GetMinistry';
+	static const String getMinistryList = '${_baseUrl}GetMinistryList';
 
 	// Reports
 	static const String getEducationLevelByMidib = '${_baseUrl}GetEducationLevelByMidib';

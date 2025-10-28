@@ -23,9 +23,14 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
   Uint8List? _photoBytes;
   String? _photoId;
   String? _photoFilePath;
+
   bool _loading = false;
   bool _modified = false;
+
   late Future<void> _initFuture;
+  
+  String _memberName = '';
+  String _memberCode = '';  
 
   @override
   void initState() {
@@ -35,7 +40,19 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
 
   Future<void> _loadPhoto() async {
     try {
-      final res = await dio.post(
+      final memberRes = await dio.post(
+		  ApiPaths.getMember,
+		  data: { 'Id': widget.memberId, 'id': widget.memberId, 'Name': '', 'name': '', 'MemberCode': '', 'memberCode': '' },
+		  options: Options(validateStatus: (s) => true),
+		);
+	   final memberData = Map<String, dynamic>.from(memberRes.data);
+	  
+	  debugPrint('⚠️ Member Data: $memberData');
+	  
+	  _memberName = memberData['name'] ?? '';
+	  _memberCode = memberData['memberCode'] ?? '';
+      
+	   final res = await dio.post(
         ApiPaths.getMemberPhotoByMember,
         data: {
           'Id': widget.memberId,
@@ -48,7 +65,7 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
         options: Options(validateStatus: (s) => true),
       );
 
-      if (res.statusCode == 200 && res.data != null) {
+	  if (res.statusCode == 200 && res.data != null) {
         final data = Map<String, dynamic>.from(res.data);
 
         _photoId = data['Id']?.toString() ?? data['id']?.toString();
@@ -86,9 +103,6 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
       final originalFileName = picked.path.split('/').last;
       final photoPath = '/photos/$originalFileName';
 
-      debugPrint('📸 Picked file: $originalFileName');
-      debugPrint('📸 Will upload with PhotoFilePath: $photoPath');
-
       setState(() {
         _photoBytes = bytes;
         _photoFilePath = photoPath;
@@ -119,13 +133,6 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
         'Remark': '',
       };
 
-      debugPrint('📤 Uploading photo...');
-      debugPrint('🆔 MemberId: ${widget.memberId}');
-      debugPrint('🆔 PhotoId: $_photoId');
-      debugPrint('📸 PhotoFilePath: $_photoFilePath');
-      debugPrint('📸 Photo bytes length: ${_photoBytes?.length}');
-      debugPrint('📸 Base64 length: ${base64Photo.length}');
-
       final res = await dio.post(
         ApiPaths.setMemberPhoto,
         data: body,
@@ -136,9 +143,6 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
           validateStatus: (_) => true,
         ),
       );
-
-      debugPrint('📥 Response status: ${res.statusCode}');
-      debugPrint('📥 Response data: ${res.data}');
 
       if (res.statusCode == 200 &&
           (res.data['exceptionNumber'] == 0 ||
@@ -181,54 +185,62 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
               if (snap.hasError) {
                 return ErrorView(
                   message:
-                      'ፎቶ ለመጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
+                      '⚠️ ፎቶ መጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
                   onRetry: () => setState(() => _initFuture = _loadPhoto()),
                 );
               }
 
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_photoBytes != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.memory(
-                            _photoBytes!,
-                            width: double.infinity,
-                            height: 400,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      else
-                        Container(
-                          width: 400,
-                          height: 400,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.person,
-                              size: 120, color: Colors.grey),
-                        ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text('ፎቶ ይምረጡ'),
-                        onPressed: () => _pickImage(fromCamera: false),
-                      ),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('ካሜራ ይጠቀሙ'),
-                        onPressed: () => _pickImage(fromCamera: true),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+             return Padding(
+				  padding: const EdgeInsets.all(16),
+				  child: Column(
+					children: [
+					  _memberHeader(),
+					  const SizedBox(height: 12),
+					  Expanded(
+						child: Center(
+						  child: Column(
+							mainAxisAlignment: MainAxisAlignment.center,
+							children: [
+							  if (_photoBytes != null)
+								ClipRRect(
+								  borderRadius: BorderRadius.circular(16),
+								  child: Image.memory(
+									_photoBytes!,
+									width: double.infinity,
+									height: 400,
+									fit: BoxFit.cover,
+								  ),
+								)
+							  else
+								Container(
+								  width: 400,
+								  height: 400,
+								  decoration: BoxDecoration(
+									color: Colors.grey[300],
+									borderRadius: BorderRadius.circular(16),
+								  ),
+								  child: const Icon(Icons.person,
+									  size: 120, color: Colors.grey),
+								),
+							  const SizedBox(height: 20),
+							  ElevatedButton.icon(
+								icon: const Icon(Icons.photo_library),
+								label: const Text('ፎቶ ይምረጡ'),
+								onPressed: () => _pickImage(fromCamera: false),
+							  ),
+							  const SizedBox(height: 10),
+							  OutlinedButton.icon(
+								icon: const Icon(Icons.camera_alt),
+								label: const Text('ካሜራ ይጠቀሙ'),
+								onPressed: () => _pickImage(fromCamera: true),
+							  ),
+							],
+						  ),
+						),
+					  ),
+					],
+				  ),
+				);
             },
           ),
 
@@ -253,5 +265,40 @@ class _MemberPhotoEntryPageState extends State<MemberPhotoEntryPage> {
         ],
       ),
     );
+  }
+  
+  Widget _memberHeader() {
+	  return Container(
+		padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+		margin: const EdgeInsets.only(bottom: 16),
+		decoration: BoxDecoration(
+		  color: Colors.indigo.shade50,
+		  borderRadius: BorderRadius.circular(12),
+		  boxShadow: [
+			BoxShadow(
+			  color: Colors.black.withOpacity(0.1),
+			  blurRadius: 6,
+			  offset: const Offset(0, 3),
+			),
+		  ],
+		),
+		child: Row(
+		  children: [
+			Icon(Icons.person, color: Theme.of(context).primaryColor, size: 28),
+			const SizedBox(width: 12),
+			Expanded(
+			  child: Text(
+				'$_memberName ($_memberCode)',
+				style: TextStyle(
+				  fontSize: 18,
+				  fontWeight: FontWeight.bold,
+				  color: Theme.of(context).primaryColor
+				),
+				overflow: TextOverflow.ellipsis,
+			  ),
+			),
+		  ],
+		),
+	  );
   }
 }

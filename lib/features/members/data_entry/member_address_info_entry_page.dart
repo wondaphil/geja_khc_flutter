@@ -61,7 +61,7 @@ class _MemberAddressInfoEntryPageState
 	  _memberName = memberData['name'] ?? '';
 	  _memberCode = memberData['memberCode'] ?? '';
       
-	  // Load dropdowns
+	   // Load dropdowns
 		final subRes = await dio.post(ApiPaths.getSubcityList);
 		_subcities = (subRes.data as List)
 			.map((e) => {
@@ -213,7 +213,7 @@ class _MemberAddressInfoEntryPageState
             if (snap.hasError) {
               return ErrorView(
                 message:
-                    'የአድራሻ መረጃ ለመጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
+                    '⚠️ የአድራሻ መረጃ መጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
                 onRetry: () =>
                     setState(() => _initFuture = _loadInitialData()),
               );
@@ -227,18 +227,8 @@ class _MemberAddressInfoEntryPageState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-					padding: const EdgeInsets.only(bottom: 12),
-					child: Text(
-					  '$_memberName ($_memberCode)',
-					  style: const TextStyle(
-						fontSize: 18,
-						fontWeight: FontWeight.bold,
-						color: Colors.indigo,
-					  ),
-					),
-				  ),
-				  DropdownButtonFormField<String>(
+                    _memberHeader(),
+					DropdownButtonFormField<String>(
                       value: _selectedSubcityId != null &&
                               _subcities
                                   .any((s) => s['Id'] == _selectedSubcityId)
@@ -350,5 +340,40 @@ class _MemberAddressInfoEntryPageState
       ),
       onChanged: onChanged,
     );
+  }
+  
+  Widget _memberHeader() {
+	  return Container(
+		padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+		margin: const EdgeInsets.only(bottom: 16),
+		decoration: BoxDecoration(
+		  color: Colors.indigo.shade50,
+		  borderRadius: BorderRadius.circular(12),
+		  boxShadow: [
+			BoxShadow(
+			  color: Colors.black.withOpacity(0.1),
+			  blurRadius: 6,
+			  offset: const Offset(0, 3),
+			),
+		  ],
+		),
+		child: Row(
+		  children: [
+			Icon(Icons.person, color: Theme.of(context).primaryColor, size: 28),
+			const SizedBox(width: 12),
+			Expanded(
+			  child: Text(
+				'$_memberName ($_memberCode)',
+				style: TextStyle(
+				  fontSize: 18,
+				  fontWeight: FontWeight.bold,
+				  color: Theme.of(context).primaryColor
+				),
+				overflow: TextOverflow.ellipsis,
+			  ),
+			),
+		  ],
+		),
+	  );
   }
 }

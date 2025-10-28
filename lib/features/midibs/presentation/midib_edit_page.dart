@@ -24,7 +24,7 @@ class MidibEditPage extends StatefulWidget {
 }
 
 class _MidibEditPageState extends State<MidibEditPage> {
-  final _form = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _code = TextEditingController();
   final _pastor = TextEditingController();
@@ -33,16 +33,15 @@ class _MidibEditPageState extends State<MidibEditPage> {
 
   bool _loading = false;
   bool _saving = false;
+  bool _modified = false;
 
   @override
   void initState() {
     super.initState();
-    // Prefill immediately
     _name.text = widget.initialName;
     _code.text = widget.initialCode;
     _pastor.text = widget.initialPastor ?? '';
     _remark.text = widget.initialRemark ?? '';
-    // Fetch fresh from server as fail-safe
     _loadFresh();
   }
 
@@ -69,62 +68,19 @@ class _MidibEditPageState extends State<MidibEditPage> {
       _pastor.text = m.pastor ?? '';
       _remark.text = m.remark ?? '';
     } catch (_) {
-      // keep prefilled values if server rejects
+      // keep prefilled values
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(leading: const BackButton(), title: const Text('ምድብ ማስተካከያ')),
-      body: AbsorbPointer(
-        absorbing: _saving,
-        child: Form(
-          key: _form,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (_loading) const LinearProgressIndicator(),
-              const SizedBox(height: 8),
-              TextFormField(controller: _name, decoration: const InputDecoration(labelText: 'ምድብ'), validator: _req),
-              const SizedBox(height: 12),
-              TextFormField(controller: _code, decoration: const InputDecoration(labelText: 'መለያ ኮድ'), validator: _req),
-              const SizedBox(height: 12),
-              TextFormField(controller: _pastor, decoration: const InputDecoration(labelText: 'የምድቡ ተጠሪ')),
-              const SizedBox(height: 12),
-              TextFormField(controller: _remark, decoration: const InputDecoration(labelText: 'ማብራሪያ'), maxLines: 2),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _saving ? null : _save,
-                      child: const Text('Save'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String? _req(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
+  String? _req(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'አስፈላጊ ነው' : null;
 
   Future<void> _save() async {
-    if (!_form.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
+
     try {
       await api.setMidib(
         Midib(
@@ -135,13 +91,114 @@ class _MidibEditPageState extends State<MidibEditPage> {
           remark: _remark.text.trim().isEmpty ? null : _remark.text.trim(),
         ),
       );
-      if (mounted) context.go('/midibs');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ምድብ ተስተካክሏል!')),
+      );
+      context.pop(true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('መረጃ ማስቀመጥ አልተሳካም። $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ምድብ ማስተካከያ'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _saving ? null : _save,
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              onChanged: () => _modified = true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_loading) const LinearProgressIndicator(),
+                  const SizedBox(height: 8),
+
+                  _textField(
+                    label: 'ምድብ ስም *',
+                    controller: _name,
+                    validator: _req,
+                  ),
+                  const SizedBox(height: 12),
+
+                  _textField(
+                    label: 'መለያ ኮድ *',
+                    controller: _code,
+                    validator: _req,
+                  ),
+                  const SizedBox(height: 12),
+
+                  _textField(
+                    label: 'የምድብ ተጠሪ',
+                    controller: _pastor,
+                  ),
+                  const SizedBox(height: 12),
+
+                  _textField(
+                    label: 'ማስታወሻ',
+                    controller: _remark,
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          if (_saving)
+            Container(
+              color: Colors.black26,
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text(
+                      'በማስቀመጥ ላይ...',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _textField({
+    required String label,
+    required TextEditingController controller,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 }

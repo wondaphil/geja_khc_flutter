@@ -17,6 +17,7 @@ import '../features/members/data_entry/member_address_info_entry_page.dart';
 import '../features/members/data_entry/member_family_info_entry_page.dart';
 import '../features/members/data_entry/member_education_and_job_info_entry_page.dart';
 import '../features/members/data_entry/member_photo_entry_page.dart';
+import '../features/members/data_entry/member_ministry_info_entry_page.dart';
 import '../features/reports/presentation/report_by_midib_page.dart';
 import '../features/charts/presentation/charts_page.dart';
 import '../features/settings/presentation/settings_page.dart';
@@ -153,6 +154,11 @@ class GejaApp extends StatelessWidget {
 		  path: '/member_photo_entry/:id',
 		  builder: (context, state) =>
 			  MemberPhotoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+		),
+		GoRoute(
+		  path: '/member_ministry_info_entry/:id',
+		  builder: (context, state) =>
+			  MemberMinistryInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
 		),
 		GoRoute(
 		  path: '/reports/by-midib',

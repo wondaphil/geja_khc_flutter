@@ -198,7 +198,7 @@ class _MemberEducationAndJobInfoEntryPageState
           if (snap.hasError) {
             return ErrorView(
               message:
-                  'የትምህርት እና የሥራ መረጃ ለመጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
+                  '⚠️ የትምህርት/ሥራ መረጃ መጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
               onRetry: () => setState(() => _initFuture = _loadInitialData()),
             );
           }
@@ -211,17 +211,7 @@ class _MemberEducationAndJobInfoEntryPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-					padding: const EdgeInsets.only(bottom: 12),
-					child: Text(
-					  '$_memberName ($_memberCode)',
-					  style: const TextStyle(
-						fontSize: 18,
-						fontWeight: FontWeight.bold,
-						color: Colors.indigo,
-					  ),
-					),
-				  ),
+                  _memberHeader(),
 				  _dropdownField(
                     label: 'የትምህርት ደረጃ',
                     items: _educationLevels,
@@ -284,5 +274,40 @@ class _MemberEducationAndJobInfoEntryPageState
           .toList(),
       onChanged: onChanged,
     );
+  }
+  
+  Widget _memberHeader() {
+	  return Container(
+		padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+		margin: const EdgeInsets.only(bottom: 16),
+		decoration: BoxDecoration(
+		  color: Colors.indigo.shade50,
+		  borderRadius: BorderRadius.circular(12),
+		  boxShadow: [
+			BoxShadow(
+			  color: Colors.black.withOpacity(0.1),
+			  blurRadius: 6,
+			  offset: const Offset(0, 3),
+			),
+		  ],
+		),
+		child: Row(
+		  children: [
+			Icon(Icons.person, color: Theme.of(context).primaryColor, size: 28),
+			const SizedBox(width: 12),
+			Expanded(
+			  child: Text(
+				'$_memberName ($_memberCode)',
+				style: TextStyle(
+				  fontSize: 18,
+				  fontWeight: FontWeight.bold,
+				  color: Theme.of(context).primaryColor
+				),
+				overflow: TextOverflow.ellipsis,
+			  ),
+			),
+		  ],
+		),
+	  );
   }
 }

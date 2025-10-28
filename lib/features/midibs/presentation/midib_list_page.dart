@@ -7,6 +7,7 @@ import '../../../../app/widgets/error_view.dart';
 
 class MidibListPage extends StatefulWidget {
   const MidibListPage({super.key});
+
   @override
   State<MidibListPage> createState() => _MidibListPageState();
 }
@@ -28,8 +29,23 @@ class _MidibListPageState extends State<MidibListPage> {
   }
 
   Future<void> _createNew() async {
-    final ok = await context.push('/midibs/new');
-    if (ok == true && mounted) {
+    final result = await context.push('/midibs/new');
+    if (result == true && mounted) {
+      await _refresh();
+    }
+  }
+
+  Future<void> _openDetail(Midib m) async {
+    final result = await context.push(
+      '/midibs/${Uri.encodeComponent(m.id)}'
+      '?name=${Uri.encodeComponent(m.name)}'
+      '&code=${Uri.encodeComponent(m.midibCode)}'
+      '&pastor=${Uri.encodeComponent(m.pastor ?? "")}'
+      '&remark=${Uri.encodeComponent(m.remark ?? "")}',
+    );
+
+    // 🔄 Auto-refresh if something was changed in the detail/edit page
+    if (result == true && mounted) {
       await _refresh();
     }
   }
@@ -37,14 +53,14 @@ class _MidibListPageState extends State<MidibListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(), // keep hamburger menu
+      drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('ምድብ'),
+        title: const Text('ምድቦች'),
         actions: [
-          PopupMenuButton<String>(
-            itemBuilder: (c) => const [
-              PopupMenuItem(value: 'list', child: Text('የምድቦች ዝርዝር')),
-            ],
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'እንደገና መጫን',
+            onPressed: _refresh,
           ),
         ],
       ),
@@ -61,13 +77,14 @@ class _MidibListPageState extends State<MidibListPage> {
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
+
           if (snap.hasError) {
-			  return ErrorView(
-				message:
-					'⚠️ ከሰርቭሩ ጋር መገናኘትና መረጃ ማምጣት አልተቻለም። እባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
-				onRetry: _refresh,
-			  );
-			}
+            return ErrorView(
+              message:
+                  '⚠️ ከሰርቭሩ ጋር መገናኘትና መረጃ ማምጣት አልተቻለም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
+              onRetry: _refresh,
+            );
+          }
 
           final items = (snap.data ?? [])
             ..sort((a, b) => a.name.compareTo(b.name));
@@ -85,16 +102,13 @@ class _MidibListPageState extends State<MidibListPage> {
               itemBuilder: (context, i) {
                 final m = items[i];
                 return ListTile(
-                  title: Text(m.name, style: const TextStyle(fontSize: 18)),
+                  title: Text(
+                    m.name,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  ),
                   subtitle: Text(m.midibCode),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(
-                    '/midibs/${Uri.encodeComponent(m.id)}'
-                    '?name=${Uri.encodeComponent(m.name)}'
-                    '&code=${Uri.encodeComponent(m.midibCode)}'
-                    '&pastor=${Uri.encodeComponent(m.pastor ?? "")}'
-                    '&remark=${Uri.encodeComponent(m.remark ?? "")}',
-                  ),
+                  onTap: () => _openDetail(m),
                 );
               },
             ),

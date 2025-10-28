@@ -187,7 +187,7 @@ class _MemberBasicInfoEntryPageState extends State<MemberBasicInfoEntryPage> {
             if (snap.hasError) {
               return ErrorView(
                 message:
-                    'መረጃ ለመጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
+                    '⚠️ የአባል መረጃ መጫን አልተሳካም።\nእባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ ወይም በኋላ ይሞክሩ።',
                 onRetry: () =>
                     setState(() => _initFuture = _loadInitialData()),
               );

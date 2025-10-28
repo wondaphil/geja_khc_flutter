@@ -142,78 +142,47 @@ class _MemberListPageState extends State<MemberListPage> {
       
 child: Column(
   children: [
-    // Search Section with Material 3 styling
-    Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          TextField(
-            controller: _searchCtl,
-            focusNode: _searchFocus,
-            decoration: InputDecoration(
-              hintText: 'አባል ፈልግ…',
-              prefixIcon: Container(
-                margin: const EdgeInsets.all(12),
-                child: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            ),
-            onChanged: (v) async {
-              if (v.trim().length >= 2) {
-                await _ensureAllMembers();
-                setState(() {});
-              } else {
-                setState(() {});
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          // Filled Button (Material 3 style)
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              icon: const Icon(Icons.view_list_rounded),
-              label: const Text(
-                'የአባላት ዝርዝር በምድብ...',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              onPressed: _enterListMode,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
+    Padding(
+	  padding: const EdgeInsets.all(16),
+	  child: Column(
+		crossAxisAlignment: CrossAxisAlignment.stretch,
+		children: [
+		  // 🔍 Simple, flat search field (no heavy container)
+		  TextField(
+			controller: _searchCtl,
+			focusNode: _searchFocus,
+			decoration: InputDecoration(
+			  labelText: 'አባል ፈልግ…',
+			  prefixIcon: const Icon(Icons.search, color: Colors.indigo),
+			  border: OutlineInputBorder(
+				borderRadius: BorderRadius.circular(12),
+			  ),
+			  contentPadding:
+				  const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+			),
+			onChanged: (v) async {
+			  if (v.trim().length >= 2) {
+				await _ensureAllMembers();
+				setState(() {});
+			  } else {
+				setState(() {});
+			  }
+			},
+		  ),
+
+		  const SizedBox(height: 16),
+
+		  // 🟦 Keep the modern quick card style (matches data-entry pages)
+		  _quickCard(
+			context,
+			'የአባላት ዝርዝር በምድብ',
+			Icons.view_list_rounded,
+			null,
+			onTap: _enterListMode,
+		  ),
+		],
+	  ),
+	),
           if (!showResults)
             const Expanded(
               child: Center(child: Text('ምንም መረጃ የለም')),
@@ -410,4 +379,41 @@ child: Column(
       ],
     );
   }
+  
+  Widget _quickCard(
+	  BuildContext context, String title, IconData icon, String? route, 
+	  { VoidCallback? onTap,}) {
+	  return Card(
+		elevation: 3,
+		margin: const EdgeInsets.only(bottom: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+		child: InkWell(
+		  borderRadius: BorderRadius.circular(12),
+		  onTap: onTap ??
+			  () {
+				if (route != null) Navigator.pushNamed(context, route);
+			  },
+		  child: Padding(
+			padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+			child: Row(
+			  children: [
+				Icon(icon, color: Theme.of(context).primaryColor, size: 28),
+				const SizedBox(width: 14),
+				Expanded(
+				  child: Text(
+					title,
+					style: const TextStyle(
+					  fontSize: 18,
+					  fontWeight: FontWeight.bold,
+					),
+				  ),
+				),
+				const Icon(Icons.arrow_forward_ios_rounded,
+					size: 18, color: Colors.indigo),
+			  ],
+			),
+		  ),
+		),
+	  );
+	}
 }

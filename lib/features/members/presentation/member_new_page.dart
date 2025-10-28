@@ -18,6 +18,7 @@ class _MemberNewPageState extends State<MemberNewPage> {
 
   final _nameCtl = TextEditingController();
   final _memberCodeCtl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   List<Midib> _midibs = [];
   Midib? _selected;
@@ -51,7 +52,7 @@ class _MemberNewPageState extends State<MemberNewPage> {
     );
     setState(() {
       _selected = (id == null || id.isEmpty) ? null : sel;
-      _memberCodeCtl.text = ''; // clear old suggestion
+      _memberCodeCtl.text = '';
       _loadingCode = _selected != null;
     });
 
@@ -59,11 +60,9 @@ class _MemberNewPageState extends State<MemberNewPage> {
       try {
         final suggestion = await api.nextMemberCodeForMidib(_selected!);
         if (!mounted) return;
-        setState(() {
-          _memberCodeCtl.text = suggestion;
-        });
+        setState(() => _memberCodeCtl.text = suggestion);
       } catch (_) {
-        // ignore, leave empty
+        // ignore
       } finally {
         if (mounted) setState(() => _loadingCode = false);
       }
@@ -73,82 +72,112 @@ class _MemberNewPageState extends State<MemberNewPage> {
   }
 
   Future<void> _save() async {
-    if (_selected == null || _nameCtl.text.trim().isEmpty || _memberCodeCtl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ስም፣ ምድብ እና የአባል ኮድ አስፈላጊ ናቸው')),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
+
     try {
-		await api.setMember(
-		  Member(
-			id: '',
-			name: _nameCtl.text.trim(),
-			memberCode: _memberCodeCtl.text.trim(),
-			midibId: _selected!.id,
-		  ).toJson(),
-		);
+      await api.setMember(
+        Member(
+          id: '',
+          name: _nameCtl.text.trim(),
+          memberCode: _memberCodeCtl.text.trim(),
+          midibId: _selected!.id,
+        ).toJson(),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('አባል ተሳክቶ ተመዝግቧል')),
+        const SnackBar(content: Text('አባል ተመዝግቧል!')),
       );
       context.pop(true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ማስቀመጥ አልተሳካም: $e')),
+        SnackBar(content: Text('ማስቀመጥ አልተሳካም። $e')),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  String? _req(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'አስፈላጊ ነው' : null;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(leading: const BackButton(), title: const Text('አዲስ አባል መመዝገቢያ')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _nameCtl,
-            decoration: const InputDecoration(labelText: 'ስም', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          InputDecorator(
-            decoration: const InputDecoration(labelText: 'ምድብ', border: OutlineInputBorder()),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                isExpanded: true,
-                value: _selected?.id.isEmpty == true ? null : _selected?.id,
-                hint: const Text('ምድብ ይምረጡ'),
-                items: _midibs.map((m) => DropdownMenuItem(value: m.id, child: Text(m.name))).toList(),
-                onChanged: _onMidibChanged,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _memberCodeCtl,
-            decoration: InputDecoration(
-              labelText: 'የአባል ኮድ',
-              border: const OutlineInputBorder(),
-              suffixIcon: _loadingCode ? const Padding(
-                padding: EdgeInsets.all(12),
-                child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-              ) : null,
-            ),
-          ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
+      appBar: AppBar(
+        title: const Text('አዲስ አባል መመዝገቢያ'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
             onPressed: _saving ? null : _save,
-            icon: _saving
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.save),
-            label: const Text('አባል አስቀምጥ'),
           ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _textField(
+                label: 'ስም *',
+                controller: _nameCtl,
+                validator: _req,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _selected?.id.isEmpty == true ? null : _selected?.id,
+                decoration: InputDecoration(
+                  labelText: 'ምድብ *',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'ምድብ ይምረጡ' : null,
+                items: _midibs
+                    .map((m) =>
+                        DropdownMenuItem(value: m.id, child: Text(m.name)))
+                    .toList(),
+                onChanged: _onMidibChanged,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _memberCodeCtl,
+                validator: _req,
+                decoration: InputDecoration(
+                  labelText: 'የአባል ኮድ *',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  suffixIcon: _loadingCode
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _textField({
+    required String label,
+    required TextEditingController controller,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
