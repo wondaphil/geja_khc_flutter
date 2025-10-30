@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/app_drawer.dart';
+import '../../features/auth/data/token_storage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -71,16 +72,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               }
 
               if (v == 'logout') {
-                // TODO: real logout later
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Logout አሁን ላይ አልተካሄደም — በኋላ ይተገበራል')),
-                );
-                return;
-              }
-
-              // (kept) quick shortcuts if you still use them
-              if (v == 'midib_list') context.push('/midibs');
-              if (v == 'member_list') context.push('/members');
+				  final ok = await showDialog<bool>(
+					context: context,
+					builder: (ctx) => AlertDialog(
+					  title: const Text('ማረጋገጫ'),
+					  content: const Text('ከመተግበሪያው መውጣት ትፈልጋለህ?'),
+					  actions: [
+						TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ተወው')),
+						FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ውጣ')),
+					  ],
+					),
+				  );
+				  if (ok == true) {
+					// clear token and go to login
+					await TokenStorage.clear();
+					if (context.mounted) context.go('/login');
+				  }
+				  return;
+				}
             },
             itemBuilder: (c) => const [
               PopupMenuItem(value: 'about_page', child: Text('ስለ…')),
@@ -154,7 +163,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       icon: Icons.assignment,
                       emoji: '📋',
                       title: 'ሪፖርት',
-                      onTap: () => context.push('/reports/by-midib'),
+                      onTap: () => context.push('/reports'),
                     ),
                     _QuickCard(
                       color: brandCyan,

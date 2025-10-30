@@ -3,20 +3,28 @@ import '../../midibs/data/midib.dart'; // if you want to reuse labels later
 import '../data/reports_api.dart';
 import '../../../app/widgets/app_drawer.dart';
 
-class ReportsByMidibPage extends StatefulWidget {
-  const ReportsByMidibPage({super.key});
+class MembersCountByMidibPage extends StatefulWidget {
+  const MembersCountByMidibPage({super.key});
 
   @override
-  State<ReportsByMidibPage> createState() => _ReportsByMidibPageState();
+  State<MembersCountByMidibPage> createState() => _MembersCountByMidibPageState();
 }
 
-class _ReportsByMidibPageState extends State<ReportsByMidibPage> {
+class _MembersCountByMidibPageState extends State<MembersCountByMidibPage> {
   final _api = ReportsApi();
 
   // Default to Gender (common & clear)
   ReportKind _kind = ReportKind.gender;
   Future<List<Map<String, dynamic>>>? _future;
 
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -34,11 +42,11 @@ class _ReportsByMidibPageState extends State<ReportsByMidibPage> {
   // Amharic labels for chips
   String _chipLabel(ReportKind k) {
     switch (k) {
+      case ReportKind.gender:          return 'በፆታ';
+      case ReportKind.subcity:         return 'በክፍለ-ከተማ';
       case ReportKind.educationLevel:  return 'በትምህርት ደረጃ';
       case ReportKind.maritalStatus:   return 'በጋብቻ ሁኔታ';
       case ReportKind.membershipMeans: return 'በአባልነት መንገድ';
-      case ReportKind.subcity:         return 'በክፍለ-ከተማ';
-      case ReportKind.gender:          return 'በፆታ';
     }
   }
 
@@ -55,8 +63,8 @@ class _ReportsByMidibPageState extends State<ReportsByMidibPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(), // keep hamburger menu
-      appBar: AppBar(title: const Text('የአባላት ብዛት በምድብ')),
-      body: Column(
+      appBar: AppBar(leading: const BackButton(), title: const Text('የአባላት ብዛት በምድብ')),
+	  body: Column(
         children: [
           // ===== ChoiceChips bar (scrollable) =====
           SizedBox(
@@ -145,7 +153,9 @@ class _ReportsByMidibPageState extends State<ReportsByMidibPage> {
 
                   return Scrollbar(
                     thumbVisibility: true,
+					controller: _scrollController,
                     child: SingleChildScrollView(
+					  controller: _scrollController,
                       padding: const EdgeInsets.all(12),
                       scrollDirection: Axis.horizontal,
                       child: ConstrainedBox(

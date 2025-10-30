@@ -4,6 +4,6 @@ import 'app/app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AppConfig.I.load();  // <-- load persisted base URL
+  await AppConfig.I.load();
   runApp(const GejaApp());
 }

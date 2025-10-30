@@ -71,10 +71,25 @@ class ApiPaths {
 	static const String getMinistry = '${_baseUrl}GetMinistry';
 	static const String getMinistryList = '${_baseUrl}GetMinistryList';
 
-	// Reports
+	// Reports (Members Count)
+ 	static const String membersCountByGender = '${_baseUrl}MembersCountByGender';
+	static const String membersCountByMidib = '${_baseUrl}MembersCountByMidib';
+	static const String membersCountByMembershipMeans = '${_baseUrl}MembersCountByMembershipMeans';
+	static const String membersCountByMembershipYear = '${_baseUrl}MembersCountByMembershipYear';
+	static const String membersCountByMaritalStatus = '${_baseUrl}MembersCountByMaritalStatus';
+	static const String membersCountBySubcity = '${_baseUrl}MembersCountBySubcity';
+	static const String membersCountByHouseOwnershipType = '${_baseUrl}MembersCountByHouseOwnershipType';
+	static const String membersCountByEducationLevel = '${_baseUrl}MembersCountByEducationLevel';
+	static const String membersCountByJob = '${_baseUrl}MembersCountByJob';
+	static const String membersCountByJobType = '${_baseUrl}MembersCountByJobType';
+	static const String membersCountByFieldOfStudy = '${_baseUrl}MembersCountByFieldOfStudy';
+	static const String membersCountByMinistryCurrent = '${_baseUrl}MembersCountByMinistryCurrent';
+	static const String membersCountByMinistryPrevious = '${_baseUrl}MembersCountByMinistryPrevious';
+	
+	// Reports by Midib
 	static const String getEducationLevelByMidib = '${_baseUrl}GetEducationLevelByMidib';
-	static const String getMaritalStatusByMidib  = '${_baseUrl}GetMaritalStatusByMidib';
-	static const String getMembershipMeansByMidib= '${_baseUrl}GetMembershipMeansByMidib';
-	static const String getSubcityByMidib        = '${_baseUrl}GetSubcityByMidib';
-	static const String getGenderByMidib         = '${_baseUrl}GetGenderByMidib';
+	static const String getMaritalStatusByMidib = '${_baseUrl}GetMaritalStatusByMidib';
+	static const String getMembershipMeansByMidib = '${_baseUrl}GetMembershipMeansByMidib';
+	static const String getSubcityByMidib = '${_baseUrl}GetSubcityByMidib';
+	static const String getGenderByMidib = '${_baseUrl}GetGenderByMidib';
 }

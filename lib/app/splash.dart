@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../features/auth/data/token_storage.dart'; // ✅ correct relative path
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -19,29 +20,40 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 2000),
     );
 
-    // Fade from 0 → 1 across the whole duration
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
-
-    // Scale: 0.2 → 1.15 (overshoot) → 1.0 (settle)
     _scale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 0.2, end: 1.15)
+        tween: Tween(begin: 0.2, end: 1.1)
             .chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 70, // first 70% of the time
+        weight: 70,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.15, end: 1.0)
+        tween: Tween(begin: 1.1, end: 1.0)
             .chain(CurveTween(curve: Curves.easeInOutCubic)),
-        weight: 30, // final 30%
+        weight: 30,
       ),
     ]).animate(_ctrl);
 
-    _ctrl.forward().whenComplete(() {
-      if (mounted) context.go('/');
-    });
+    _start(); // kick things off
+  }
+
+  Future<void> _start() async {
+    // Play animation first
+    await _ctrl.forward();
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    // Then check auth safely
+    final token = await TokenStorage.get();
+    if (!mounted) return;
+
+    if (token == null || token.isEmpty) {
+      context.go('/login'); // 🔒 not logged in
+    } else {
+      context.go('/'); // ✅ logged in
+    }
   }
 
   @override
@@ -64,7 +76,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                 opacity: _fade.value,
                 child: const Image(
                   image: AssetImage('assets/images/logo_splash.png'),
-                  width: 140, // tweak if you want a larger final size
+                  width: 150,
                   fit: BoxFit.contain,
                 ),
               ),
