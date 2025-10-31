@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/api_client.dart';
 import '../../../core/config.dart';
 import '../../auth/data/token_storage.dart';
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordCtl = TextEditingController();
   bool _loading = false;
   String? _error;
+  final storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
@@ -50,6 +52,10 @@ class _LoginPageState extends State<LoginPage> {
       await TokenStorage.save(token);
 
       if (!mounted) return;
+	  
+	  // Save username to display it in home page
+	  await storage.write(key: 'username', value: res.data['username']);
+	  
       context.go('/');
     } on DioException catch (e) {
       setState(() => _error = 'የተሳሳተ የተጠቃሚ ስም ወይም የይለፍ ቃል');

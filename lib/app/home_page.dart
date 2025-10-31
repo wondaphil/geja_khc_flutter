@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/app_drawer.dart';
-import '../../features/auth/data/token_storage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,6 +13,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   static const brandCyan = Color(0xFF00ADEF);
+  final storage = const FlutterSecureStorage();
+  String? _username;
 
   late final AnimationController _ac;
   late final Animation<double> _fadeLogo;
@@ -25,6 +27,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _fadeLogo  = CurvedAnimation(parent: _ac, curve: const Interval(0.0, 0.6, curve: Curves.easeOut));
     _fadeCards = CurvedAnimation(parent: _ac, curve: const Interval(0.35, 1.0, curve: Curves.easeOut));
     _ac.forward();
+    _loadUsername();
+  }
+
+  Future<void> _loadUsername() async {
+    final name = await storage.read(key: 'username');
+    if (mounted) setState(() => _username = name);
   }
 
   @override
@@ -65,31 +73,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ],
                   ),
                 );
-                if (ok == true) {
-                  SystemNavigator.pop();
-                }
+                if (ok == true) SystemNavigator.pop();
                 return;
               }
 
               if (v == 'logout') {
-				  final ok = await showDialog<bool>(
-					context: context,
-					builder: (ctx) => AlertDialog(
-					  title: const Text('ማረጋገጫ'),
-					  content: const Text('ከመተግበሪያው መውጣት ትፈልጋለህ?'),
-					  actions: [
-						TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ተወው')),
-						FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ውጣ')),
-					  ],
-					),
-				  );
-				  if (ok == true) {
-					// clear token and go to login
-					await TokenStorage.clear();
-					if (context.mounted) context.go('/login');
-				  }
-				  return;
-				}
+                await storage.deleteAll(); // Clear token and username
+                if (mounted) context.go('/login');
+                return;
+              }
             },
             itemBuilder: (c) => const [
               PopupMenuItem(value: 'about_page', child: Text('ስለ…')),
@@ -106,7 +98,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo — fades in first
+              Align(
+				  alignment: Alignment.topRight,
+				  child: AnimatedOpacity(
+					duration: const Duration(milliseconds: 800),
+					opacity: _username == null ? 0.0 : 1.0,
+					child: Padding(
+					  padding: const EdgeInsets.only(right: 8.0, bottom: 12),
+					  child: Text(
+						_username ?? '',
+						style: const TextStyle(
+						  fontSize: 16,
+						  fontWeight: FontWeight.w500,
+						  color: Colors.black54,
+						),
+					  ),
+					),
+				  ),
+				),
+				
+              // Logo
               FadeTransition(
                 opacity: _fadeLogo,
                 child: SizedBox(
@@ -114,10 +125,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   height: 160,
                   child: Image.asset(
                     'assets/images/logo.png',
-                    fit: BoxFit.contain, // good for wide rectangle logos
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
               FadeTransition(
                 opacity: _fadeLogo,
@@ -129,7 +141,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               const SizedBox(height: 24),
 
-              // Quick-access cards — fade in after logo
               FadeTransition(
                 opacity: _fadeCards,
                 child: Wrap(
@@ -172,10 +183,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       title: 'ቻርት',
                       onTap: () => context.push('/charts'),
                     ),
-					_QuickCard(
+                    _QuickCard(
                       color: brandCyan,
-                      icon: Icons.settings, // using Settings for መቼቶች for now
-                      emoji: '🗓️',
+                      icon: Icons.settings,
+                      emoji: '⚙️',
                       title: 'መቼቶች',
                       onTap: () => context.push('/settings'),
                     ),
@@ -193,7 +204,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 class _QuickCard extends StatelessWidget {
   final Color color;
   final IconData icon;
-  final String emoji; // shown lightly in the corner
+  final String emoji;
   final String title;
   final VoidCallback onTap;
 
@@ -219,12 +230,13 @@ class _QuickCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [BoxShadow(blurRadius: 8, spreadRadius: 1, offset: Offset(0, 3), color: Colors.black12)],
-          border: Border.all(color: color.withOpacity(.2)),
+          boxShadow: const [
+            BoxShadow(blurRadius: 8, spreadRadius: 1, offset: Offset(0, 3), color: Colors.black12)
+          ],
+          border: Border.all(color: Colors.black12),
         ),
         child: Stack(
           children: [
-            // subtle emoji watermark
             Positioned(
               right: 10,
               top: 6,
@@ -233,7 +245,6 @@ class _QuickCard extends StatelessWidget {
                 child: Text(emoji, style: const TextStyle(fontSize: 34)),
               ),
             ),
-            // content
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: Column(
@@ -243,11 +254,7 @@ class _QuickCard extends StatelessWidget {
                   const Spacer(),
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, color: onSurface, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),

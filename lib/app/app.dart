@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../features/auth/presentation/login_page.dart';
 import 'home_page.dart';
 import 'splash.dart';
@@ -34,20 +35,29 @@ class GejaApp extends StatelessWidget {
 
   static const double fontScaleFactor = 1.25;
 
+  // ===== Text Theme =====
   TextTheme _getScaledTextTheme() {
     final baseTheme = Typography.blackMountainView;
-    return baseTheme.apply(
+    return TextTheme(
+      displayLarge: baseTheme.displayLarge?.copyWith(fontSize: (baseTheme.displayLarge?.fontSize ?? 96) * fontScaleFactor),
+      displayMedium: baseTheme.displayMedium?.copyWith(fontSize: (baseTheme.displayMedium?.fontSize ?? 60) * fontScaleFactor),
+      displaySmall: baseTheme.displaySmall?.copyWith(fontSize: (baseTheme.displaySmall?.fontSize ?? 48) * fontScaleFactor),
+      headlineLarge: baseTheme.headlineLarge?.copyWith(fontSize: (baseTheme.headlineLarge?.fontSize ?? 40) * fontScaleFactor),
+      headlineMedium: baseTheme.headlineMedium?.copyWith(fontSize: (baseTheme.headlineMedium?.fontSize ?? 34) * fontScaleFactor),
+      headlineSmall: baseTheme.headlineSmall?.copyWith(fontSize: (baseTheme.headlineSmall?.fontSize ?? 24) * fontScaleFactor),
+      titleLarge: baseTheme.titleLarge?.copyWith(fontSize: (baseTheme.titleLarge?.fontSize ?? 20) * fontScaleFactor),
+      titleMedium: baseTheme.titleMedium?.copyWith(fontSize: (baseTheme.titleMedium?.fontSize ?? 16) * fontScaleFactor),
+      titleSmall: baseTheme.titleSmall?.copyWith(fontSize: (baseTheme.titleSmall?.fontSize ?? 14) * fontScaleFactor),
+      bodyLarge: baseTheme.bodyLarge?.copyWith(fontSize: (baseTheme.bodyLarge?.fontSize ?? 16) * fontScaleFactor),
+      bodyMedium: baseTheme.bodyMedium?.copyWith(fontSize: (baseTheme.bodyMedium?.fontSize ?? 14) * fontScaleFactor),
+      bodySmall: baseTheme.bodySmall?.copyWith(fontSize: (baseTheme.bodySmall?.fontSize ?? 12) * fontScaleFactor),
+      labelLarge: baseTheme.labelLarge?.copyWith(fontSize: (baseTheme.labelLarge?.fontSize ?? 14) * fontScaleFactor),
+      labelMedium: baseTheme.labelMedium?.copyWith(fontSize: (baseTheme.labelMedium?.fontSize ?? 12) * fontScaleFactor),
+      labelSmall: baseTheme.labelSmall?.copyWith(fontSize: (baseTheme.labelSmall?.fontSize ?? 11) * fontScaleFactor),
+    ).apply(
       fontFamily: 'Ethiopic',
       fontFamilyFallback: const ['Nyala', 'Noto Sans Ethiopic', 'sans-serif'],
-      bodyColor: Colors.black,
-      displayColor: Colors.black,
     );
-  }
-
-  Future<bool> _hasToken() async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'jwt_token');
-    return token != null && token.isNotEmpty;
   }
 
   @override
@@ -59,12 +69,12 @@ class GejaApp extends StatelessWidget {
       scaffoldBackgroundColor: const Color(0xFFF3FBFE),
       appBarTheme: const AppBarTheme(centerTitle: false),
       cardTheme: const CardThemeData(
-		  elevation: 1,
-		  margin: EdgeInsets.all(12),
-		  shape: RoundedRectangleBorder(
-			borderRadius: BorderRadius.all(Radius.circular(16)),
-		  ),
-		),
+        elevation: 1,
+        margin: EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+      ),
       inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -75,25 +85,111 @@ class GejaApp extends StatelessWidget {
       ),
     );
 
+    // ===== ROUTES =====
     final router = GoRouter(
-	  initialLocation: '/splash',
-	  routes: [
-		GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
-		GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-		GoRoute(path: '/', builder: (context, state) => const HomePage()),
-		GoRoute(path: '/about', builder: (context, state) => const AboutPage()),
-		GoRoute(path: '/midibs', builder: (context, state) => const MidibListPage()),
-		GoRoute(path: '/midibs/new', builder: (context, state) => const MidibNewPage()),
-		GoRoute(path: '/reports', builder: (context, state) => const ReportsPage(), routes: [
-		  GoRoute(path: 'by-midib', builder: (context, state) => const MembersCountByMidibPage()),
-		  GoRoute(path: 'by-parameters', builder: (context, state) => const MemberCountByParametersPage()),
-		]),
-		GoRoute(path: '/charts', builder: (context, state) => const ChartsPage()),
-		GoRoute(path: '/settings', builder: (context, state) => const SettingsPage()),
-		GoRoute(path: '/settings/server', builder: (context, state) => const ServerAddressPage()),
-	  ],
-	);
+      initialLocation: '/splash',
+      routes: [
+        GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
+        GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+        GoRoute(path: '/', builder: (context, state) => const HomePage()),
 
+        // ----- About -----
+        GoRoute(path: '/about', builder: (context, state) => const AboutPage()),
+
+        // ----- Midib -----
+        GoRoute(path: '/midibs', builder: (context, state) => const MidibListPage()),
+        GoRoute(path: '/midibs/new', builder: (context, state) => const MidibNewPage()),
+        GoRoute(
+          path: '/midibs/:id',
+          builder: (context, state) => MidibDetailPage(
+            id: state.pathParameters['id']!,
+            name: state.uri.queryParameters['name'] ?? '',
+            code: state.uri.queryParameters['code'] ?? '',
+            pastor: state.uri.queryParameters['pastor'],
+            remark: state.uri.queryParameters['remark'],
+          ),
+        ),
+        GoRoute(
+          path: '/midibs/:id/edit',
+          builder: (context, state) => MidibEditPage(
+            id: state.pathParameters['id']!,
+            initialName: state.uri.queryParameters['name'] ?? '',
+            initialCode: state.uri.queryParameters['code'] ?? '',
+            initialPastor: state.uri.queryParameters['pastor'],
+            initialRemark: state.uri.queryParameters['remark'],
+          ),
+        ),
+
+        // ----- Members -----
+        GoRoute(path: '/members', builder: (context, state) => const MemberListPage()),
+        GoRoute(path: '/members/new', builder: (context, state) => const MemberNewPage()),
+        GoRoute(
+          path: '/members/:id',
+          builder: (context, state) => MemberDetailPage(id: state.pathParameters['id']!),
+        ),
+        GoRoute(
+          path: '/members/:id/full_detail',
+          builder: (context, state) => MemberFullDetailPage(id: state.pathParameters['id'] ?? ''),
+        ),
+
+        // ----- Data Entry -----
+        GoRoute(path: '/member_data_entry', builder: (context, state) => const MemberDataEntryPage()),
+        GoRoute(
+          path: '/member_basic_info_entry/:id',
+          builder: (context, state) =>
+              MemberBasicInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(
+          path: '/member_address_info_entry/:id',
+          builder: (context, state) =>
+              MemberAddressInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(
+          path: '/member_family_info_entry/:id',
+          builder: (context, state) =>
+              MemberFamilyInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(
+          path: '/member_education_and_job_info_entry/:id',
+          builder: (context, state) =>
+              MemberEducationAndJobInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(
+          path: '/member_photo_entry/:id',
+          builder: (context, state) =>
+              MemberPhotoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(
+          path: '/member_ministry_info_entry/:id',
+          builder: (context, state) =>
+              MemberMinistryInfoEntryPage(memberId: state.pathParameters['id'] ?? ''),
+        ),
+
+        // ----- Reports -----
+        GoRoute(
+		  path: '/reports', 
+		  builder: (context, state) => 
+			const ReportsPage(), routes: [
+			  GoRoute(
+			    path: 'by-midib', 
+				builder: (context, state) => const MembersCountByMidibPage()
+			  ),
+			  GoRoute(
+			    path: 'by-parameters', 
+				builder: (context, state) => const MemberCountByParametersPage()
+			  ),
+		]),
+
+        // ----- Charts -----
+        GoRoute(path: '/charts', builder: (context, state) => const ChartsPage()),
+
+        // ----- Settings -----
+        GoRoute(path: '/settings', builder: (context, state) => const SettingsPage()),
+        GoRoute(path: '/settings/server', builder: (context, state) => const ServerAddressPage()),
+      ],
+    );
+
+    // ===== MaterialApp =====
     return MaterialApp.router(
       title: 'Geja KHC',
       debugShowCheckedModeBanner: false,

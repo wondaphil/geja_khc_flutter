@@ -53,7 +53,7 @@ class _MemberListPageState extends State<MemberListPage> {
         final midib = _findMidibById(_selectedMidibId);
         setState(() {
           _futureList = (midib == null) ? null : membersApi.listMembersByMidib(midib);
-        });
+		});
       }
     }
   }
@@ -147,7 +147,6 @@ child: Column(
 	  child: Column(
 		crossAxisAlignment: CrossAxisAlignment.stretch,
 		children: [
-		  // 🔍 Simple, flat search field (no heavy container)
 		  TextField(
 			controller: _searchCtl,
 			focusNode: _searchFocus,
@@ -281,40 +280,55 @@ child: Column(
 			  
 			  // Animated search field
 			  AnimatedSwitcher(
-				duration: const Duration(milliseconds: 300),
-				child: _selectedMidibId != null
-					? Column(
-						children: [
-						  const SizedBox(height: 16),
-						  TextField(
-							key: ValueKey(_selectedMidibId), // Important for animation
-							decoration: InputDecoration(
-							  hintText: 'ፈልግ…',
-							  prefixIcon: Container(
-								margin: const EdgeInsets.all(12),
-								child: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
-							  ),
-							  border: OutlineInputBorder(
-								borderRadius: BorderRadius.circular(16),
-								borderSide: BorderSide.none,
-							  ),
-							  focusedBorder: OutlineInputBorder(
-								borderRadius: BorderRadius.circular(16),
-								borderSide: BorderSide(
-								  color: Theme.of(context).colorScheme.primary,
-								  width: 2,
+				  duration: const Duration(milliseconds: 300),
+				  child: (_selectedMidibId != null && _futureList != null)
+					  ? FutureBuilder<List<Member>>(
+						  future: _futureList,
+						  builder: (context, snap) {
+							if (snap.connectionState != ConnectionState.done) {
+							  // Don't show the search box yet — just return a placeholder
+							  return const SizedBox.shrink();
+							}
+							return Column(
+							  children: [
+								const SizedBox(height: 16),
+								TextField(
+								  key: ValueKey(_selectedMidibId),
+								  decoration: InputDecoration(
+									hintText: 'ፈልግ…',
+									prefixIcon: Container(
+									  margin: const EdgeInsets.all(12),
+									  child: Icon(Icons.filter_list,
+										  color: Theme.of(context).colorScheme.primary),
+									),
+									border: OutlineInputBorder(
+									  borderRadius: BorderRadius.circular(16),
+									  borderSide: BorderSide.none,
+									),
+									focusedBorder: OutlineInputBorder(
+									  borderRadius: BorderRadius.circular(16),
+									  borderSide: BorderSide(
+										color: Theme.of(context).colorScheme.primary,
+										width: 2,
+									  ),
+									),
+									filled: true,
+									fillColor: Theme.of(context)
+										.colorScheme
+										.surfaceVariant
+										.withOpacity(0.4),
+									contentPadding:
+										const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+								  ),
+								  onChanged: (v) =>
+									  setState(() => _listFilter = v.trim().toLowerCase()),
 								),
-							  ),
-							  filled: true,
-							  fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-							  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-							),
-							onChanged: (v) => setState(() => _listFilter = v.trim().toLowerCase()),
-						  ),
-						],
-					  )
-					: const SizedBox.shrink(),
-			  ),
+							  ],
+							);
+						  },
+						)
+					  : const SizedBox.shrink(),
+				),
 			],
 		  ),
 		),
@@ -345,7 +359,9 @@ child: Column(
                             .where((m) =>
                                 _listFilter.isEmpty ||
                                 m.name.toLowerCase().contains(_listFilter))
-                            .toList();
+                            .toList()
+							..sort((a, b) => a.name.compareTo(b.name)); // sort alphabetically (Amharic-safe)
+							
                         if (items.isEmpty) {
                           return const Center(child: Text('ምንም አባል አልተገኘም'));
                         }
