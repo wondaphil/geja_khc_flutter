@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../features/auth/presentation/login_page.dart';
 import 'home_page.dart';
 import 'splash.dart';
+import '../core/api_client.dart'; 
 import '../features/about/about_page.dart';
 import '../features/midibs/presentation/midib_list_page.dart';
 import '../features/midibs/presentation/midib_detail_page.dart';
@@ -87,7 +88,8 @@ class GejaApp extends StatelessWidget {
 
     // ===== ROUTES =====
     final router = GoRouter(
-      initialLocation: '/splash',
+      navigatorKey: navigatorKey,
+	  initialLocation: '/splash',
       routes: [
         GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
         GoRoute(path: '/login', builder: (context, state) => const LoginPage()),

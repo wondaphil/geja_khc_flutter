@@ -93,110 +93,124 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       drawer: const AppDrawer(),
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Align(
+		  child: SingleChildScrollView(
+			padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+			child: Column(
+			  mainAxisAlignment: MainAxisAlignment.center,
+			  children: [
+				// 🟦 Username watermark (top-right corner with 👤 icon)
+				Align(
 				  alignment: Alignment.topRight,
 				  child: AnimatedOpacity(
 					duration: const Duration(milliseconds: 800),
 					opacity: _username == null ? 0.0 : 1.0,
 					child: Padding(
 					  padding: const EdgeInsets.only(right: 8.0, bottom: 12),
-					  child: Text(
-						_username ?? '',
-						style: const TextStyle(
-						  fontSize: 16,
-						  fontWeight: FontWeight.w500,
-						  color: Colors.black54,
-						),
+					  child: Row(
+						mainAxisSize: MainAxisSize.min,
+						mainAxisAlignment: MainAxisAlignment.end,
+						children: [
+						  const Icon(Icons.person_outline, size: 16, color: Colors.black38),
+						  const SizedBox(width: 4),
+						  Flexible(
+							child: Text(
+							  _username ?? '',
+							  style: const TextStyle(
+								fontSize: 13,
+								fontWeight: FontWeight.w400,
+								color: Colors.black38,
+								letterSpacing: 0.3,
+							  ),
+							  overflow: TextOverflow.ellipsis,
+							),
+						  ),
+						],
 					  ),
 					),
 				  ),
 				),
-				
-              // Logo
-              FadeTransition(
-                opacity: _fadeLogo,
-                child: SizedBox(
-                  width: 160,
-                  height: 160,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
 
-              const SizedBox(height: 16),
-              FadeTransition(
-                opacity: _fadeLogo,
-                child: Text(
-                  'የአባላት መረጃ አስተዳደር',
-                  style: const TextStyle(fontSize: 24),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 24),
+				// 🟦 Logo
+				FadeTransition(
+				  opacity: _fadeLogo,
+				  child: SizedBox(
+					width: 160,
+					height: 160,
+					child: Image.asset(
+					  'assets/images/logo.png',
+					  fit: BoxFit.contain,
+					),
+				  ),
+				),
 
-              FadeTransition(
-                opacity: _fadeCards,
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.groups,
-                      emoji: '👥',
-                      title: 'ምድቦች',
-                      onTap: () => context.push('/midibs'),
-                    ),
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.people,
-                      emoji: '👤',
-                      title: 'አባላት',
-                      onTap: () => context.push('/members'),
-                    ),
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.edit_note,
-                      emoji: '📝',
-                      title: 'ዝርዝር መረጃ ማስገቢያ',
-                      onTap: () => context.push('/member_data_entry'),
-                    ),
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.assignment,
-                      emoji: '📋',
-                      title: 'ሪፖርት',
-                      onTap: () => context.push('/reports'),
-                    ),
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.show_chart,
-                      emoji: '📊️',
-                      title: 'ቻርት',
-                      onTap: () => context.push('/charts'),
-                    ),
-                    _QuickCard(
-                      color: brandCyan,
-                      icon: Icons.settings,
-                      emoji: '⚙️',
-                      title: 'መቼቶች',
-                      onTap: () => context.push('/settings'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+				const SizedBox(height: 16),
+				FadeTransition(
+				  opacity: _fadeLogo,
+				  child: Text(
+					'የአባላት መረጃ አስተዳደር',
+					style: const TextStyle(fontSize: 24),
+					textAlign: TextAlign.center,
+				  ),
+				),
+				const SizedBox(height: 24),
+
+				// 🟦 Feature cards
+				FadeTransition(
+				  opacity: _fadeCards,
+				  child: Wrap(
+					spacing: 16,
+					runSpacing: 16,
+					alignment: WrapAlignment.center,
+					children: [
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.groups,
+						emoji: '👥',
+						title: 'ምድቦች',
+						onTap: () => context.push('/midibs'),
+					  ),
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.people,
+						emoji: '👤',
+						title: 'አባላት',
+						onTap: () => context.push('/members'),
+					  ),
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.edit_note,
+						emoji: '📝',
+						title: 'ዝርዝር መረጃ ማስገቢያ',
+						onTap: () => context.push('/member_data_entry'),
+					  ),
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.assignment,
+						emoji: '📋',
+						title: 'ሪፖርት',
+						onTap: () => context.push('/reports'),
+					  ),
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.show_chart,
+						emoji: '📊️',
+						title: 'ቻርት',
+						onTap: () => context.push('/charts'),
+					  ),
+					  _QuickCard(
+						color: brandCyan,
+						icon: Icons.settings,
+						emoji: '⚙️',
+						title: 'መቼቶች',
+						onTap: () => context.push('/settings'),
+					  ),
+					],
+				  ),
+				),
+			  ],
+			),
+		  ),
+		),
     );
   }
 }

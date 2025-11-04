@@ -236,16 +236,29 @@ class _BarChartView extends StatelessWidget {
 
     final maxVal = entries.fold<double>(0, (p, e) => e.value > p ? e.value : p);
     final maxY = (maxVal * 1.18).clamp(1.0, double.infinity);
-
     final count = entries.length;
     final needsScroll = count > 12;
     final textStyle = Theme.of(context).textTheme.bodySmall;
 
-    // Build the chart (we’ll choose alignment/width dynamically below)
+    // Soft, muted spectrum — not neon
+    final spectrumColors = [
+      const Color(0xFFD32F2F), // red
+      const Color(0xFFF57C00), // deep orange
+      const Color(0xFFFBC02D), // amber
+      const Color(0xFFAFB42B), // olive green
+      const Color(0xFF388E3C), // green
+      const Color(0xFF00796B), // teal
+      const Color(0xFF0288D1), // blue
+      const Color(0xFF303F9F), // indigo
+      const Color(0xFF7B1FA2), // purple
+      const Color(0xFFC2185B), // pink
+      const Color(0xFF8D6E63), // brown
+      const Color(0xFF757575), // gray
+    ];
+
     Widget buildChart(double chartWidth) {
-      // If few bars: spread them edge-to-edge, wider bars.
-      // If many bars (scrolling): keep consistent width and center alignment.
-      final alignment = needsScroll ? BarChartAlignment.center : BarChartAlignment.spaceBetween;
+      final alignment =
+          needsScroll ? BarChartAlignment.center : BarChartAlignment.spaceBetween;
       final barWidth = needsScroll
           ? (count <= 16 ? 14.0 : 12.0)
           : (chartWidth / (count * 2.4)).clamp(16.0, 36.0);
@@ -259,23 +272,41 @@ class _BarChartView extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: 100, // ticks every 100
-            getDrawingHorizontalLine: (v) => FlLine(color: Colors.black12, strokeWidth: 1),
+            horizontalInterval: 200,
+            getDrawingHorizontalLine: (v) => FlLine(
+              color: Colors.black12,
+              strokeWidth: 1.0,
+            ),
+          ),
+          // ✅ Force draw 0-line manually
+          extraLinesData: ExtraLinesData(
+            horizontalLines: [
+              HorizontalLine(
+                y: 0,
+                color: Colors.black12,
+                strokeWidth: 1.0,
+              ),
+            ],
           ),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                interval: 100,
-                reservedSize: 40,
+                interval: 200,
+                reservedSize: 48,
                 getTitlesWidget: (v, meta) => Padding(
                   padding: const EdgeInsets.only(right: 6),
-                  child: Text(v.toInt().toString(), style: textStyle),
+                  child: Text(
+                    v.toInt().toString(),
+                    style: textStyle,
+                  ),
                 ),
               ),
             ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -283,11 +314,13 @@ class _BarChartView extends StatelessWidget {
                   final i = val.toInt();
                   if (i < 0 || i >= entries.length) return const SizedBox.shrink();
                   final label = entries[i].label;
-                  final short = label.length > 10 ? '${label.substring(0, 10)}…' : label;
+                  final short =
+                      label.length > 10 ? '${label.substring(0, 10)}…' : label;
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Transform.rotate(
-                      angle: -0.6,
+                      angle: -1.57, // 90° vertical
+                      alignment: Alignment.center,
                       child: Text(short, style: textStyle),
                     ),
                   );
@@ -299,13 +332,16 @@ class _BarChartView extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              tooltipPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              tooltipPadding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final label = entries[group.x.toInt()].label;
                 return BarTooltipItem(
                   '$label\n',
                   const TextStyle(fontWeight: FontWeight.bold),
-                  children: [TextSpan(text: rod.toY.toStringAsFixed(0))],
+                  children: [
+                    TextSpan(text: rod.toY.toStringAsFixed(0)),
+                  ],
                 );
               },
             ),
@@ -318,12 +354,8 @@ class _BarChartView extends StatelessWidget {
                   BarChartRodData(
                     toY: entries[i].value,
                     width: barWidth,
-                    borderRadius: BorderRadius.circular(8),
-                    gradient: const LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Color(0xFF00ADEF), Color(0xFF5BD7FF)],
-                    ),
+                    borderRadius: BorderRadius.zero, // sharp corners
+                    color: spectrumColors[i % spectrumColors.length],
                   ),
                 ],
               ),
@@ -332,48 +364,29 @@ class _BarChartView extends StatelessWidget {
       );
     }
 
-    // Card with ~80% chart / ~20% bottom padding
-    final chartBody = LayoutBuilder(
-      builder: (context, constraints) {
-        final cardInnerWidth = constraints.maxWidth;
-        final cardInnerHeight = constraints.maxHeight;
-        final chartHeight = cardInnerHeight * 0.8;
-        final spacer = cardInnerHeight * 0.2;
-
-        // For many bars, make a wide canvas and scroll horizontally.
-        if (needsScroll) {
-          final contentWidth = (entries.length * 28.0) + 48.0;
-          return Column(
-            children: [
-              SizedBox(
-                height: chartHeight,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(width: contentWidth, child: buildChart(contentWidth)),
-                ),
-              ),
-              SizedBox(height: spacer),
-            ],
-          );
-        }
-
-        // Few bars: use available width to spread bars evenly.
-        return Column(
-          children: [
-            SizedBox(height: chartHeight, child: buildChart(cardInnerWidth)),
-            SizedBox(height: spacer),
-          ],
-        );
-      },
-    );
-
     return Card(
       elevation: 2,
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      // ✅ generous 25% bottom margin to make room for vertical labels
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SizedBox(height: 320, child: chartBody),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
+        child: SizedBox(
+          height: 320,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (needsScroll) {
+                final contentWidth = (entries.length * 32.0) + 60.0;
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child:
+                      SizedBox(width: contentWidth, child: buildChart(contentWidth)),
+                );
+              }
+              return buildChart(constraints.maxWidth);
+            },
+          ),
+        ),
       ),
     );
   }

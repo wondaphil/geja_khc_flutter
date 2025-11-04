@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'config.dart';
 
-Dio makeDio({BuildContext? context}) {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Dio makeDio() {
   final dio = Dio(BaseOptions(
     baseUrl: AppConfig.I.baseUrl,
     connectTimeout: const Duration(seconds: 20),
@@ -13,35 +14,46 @@ Dio makeDio({BuildContext? context}) {
     headers: {'Content-Type': 'application/json'},
   ));
 
+  // 🔄 Live-update baseUrl if changed in settings
   AppConfig.I.addListener(() {
     dio.options.baseUrl = AppConfig.I.baseUrl;
   });
 
-  const storage = FlutterSecureStorage();
-
+  // 🟦 Attach interceptors
   dio.interceptors.add(InterceptorsWrapper(
     onRequest: (options, handler) async {
+      const storage = FlutterSecureStorage();
       final token = await storage.read(key: 'jwt_token');
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
       }
-      handler.next(options);
+      return handler.next(options);
     },
-    onError: (e, handler) async {
-      if (e.response?.statusCode == 401 && context != null && context.mounted) {
+    onError: (DioException e, handler) async {
+      // 🟥 If token expired or unauthorized
+      if (e.response?.statusCode == 401) {
+        const storage = FlutterSecureStorage();
         await storage.delete(key: 'jwt_token');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('የመጠቀሚያ ጊዜዎ አልፏል፤ እባክዎን እንደገና ይግቡ።')),
-        );
-        context.go('/login');
+        await storage.delete(key: 'username');
+
+        // Force logout — redirect to login page
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        });
       }
-      handler.next(e);
+      return handler.next(e);
     },
   ));
 
+  // Optional logging
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
-    responseBody: true,
+    responseBody: false,
+    requestHeader: false,
+    responseHeader: false,
   ));
 
   return dio;
